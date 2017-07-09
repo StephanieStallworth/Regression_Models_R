@@ -1,0 +1,134 @@
+---
+title: "Longley Non-Linear Regression"
+author: "Stephanie Stallworth"
+date: "April 21, 2017"
+output: 
+  html_document: 
+    keep_md: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, comment ="")
+```
+
+###**Executive Summary**
+
+For this analysis, I will perform non-linear regression analysis on the `longley` data provided in the datasets package in R. The techniques to be applied are:
+
+1. Multivariate Adaptive Regression Splines 
+2. Support Vector Machine 
+3. k-Nearest Neighbor
+4. Neural Network 
+
+###**PreProcessing**
+
+```{r}
+# Load data
+data(longley)
+
+# Examine structure
+str(longley)
+
+# View data
+head(longley)
+
+# Summarize data
+summary(longley)
+```
+
+
+###**Multivariate Adaptive Regression Splines**
+Multivariate Adadptive Regression Slines is a non-parametric regression method that models multiple nonlinearities in data using hinge functions (functions with a kink in them).
+
+```{r}
+# Load package
+library(earth)
+
+# Fit model
+marsFit<-earth(Employed ~., longley)
+
+# Summarize the fit
+summary(marsFit)
+
+# Summarize the importance of input varaibles
+evimp(marsFit)
+
+# Make predictions
+marsPredictions <- predict(marsFit, longley)
+
+# Summarize accuracy
+marsMSE<-mean((longley$Employed - marsPredictions)^2)
+print(marsMSE)
+```
+
+###**Support Vector Machine**
+Support Vector Machines (SVM) are a class of methods, developed originally for classification, that find support points that best separate classes.  SVM for regression is called Support Vector Regression.
+
+```{r}
+# Load package
+library(kernlab)
+
+# Fit model
+svmFit<-ksvm(Employed ~ .,longley)
+
+# Summarize the fit
+summary(svmFit)
+
+# Make predictions
+svmPredictions<-predict(svmFit, longley)
+
+# Summarize accuracy
+svmMSE<-mean((longley$Employed - svmPredictions)^2)
+print(svmMSE)
+
+
+```
+
+###**k-Nearest Neighbor**
+The k-Nearest Neighbor (kNN) does not create a model, rather it creates predictions from close data on-demand when a prediction is required.  A similarity measure (such as Euclidean distance) is used to locate close data in order to make predictions.
+
+```{r}
+# Load package
+library(caret)
+
+# Fit model
+knnFit<-knnreg(longley[,1:6], longley[,7], k = 3)
+
+# Summarize Fit
+summary(knnFit)
+
+# Make predictions
+knnPredictions<-predict(knnFit, longley[ ,1:6])
+
+# Summarize accuracy
+knnMSE<-mean((longley$Employed - knnPredictions)^2)
+print(knnMSE)
+# Summarize accuracy
+```
+
+###**Neural Network**
+A Neural Network (NN) is a graph of computational units that receive inputs and transfer the result into an output that is passed on.  The units are ordered into layers to connect the features of the output vector.  With trianing, such as Back-Propagation algorithm, neural networks can be designed and trained to model the underlying relationship in data.
+
+```{r}
+#Load package
+library(nnet)
+
+# Fit model
+x<-longley[,1:6]
+y<-longley[,7]
+
+nnFit<-nnet(Employed ~ ., longley, size = 12, maxit = 500, linout = T, decay = 0.01)
+
+# Summarize fit
+summary(nnFit)
+
+# Make predictions
+nnPredictions<-predict(nnFit,x, type = "raw")
+
+# Summarize accuracy
+nnMSE<-mean((y - nnPredictions)^2)
+print(nnMSE)
+
+```
+
+
